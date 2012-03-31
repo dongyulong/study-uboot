@@ -1,0 +1,32 @@
+以uboot master分支为base，创建本地master分支
+cd uboot
+git remote add origin git@github.com:dongyulong/samdroid.git
+出现错误：
+fatal: remote origin already exists.
+改为：
+git remote add github git@github.com:dongyulong/samdroid.git
+git push -u github master
+
+建立develop分支
+git co develop
+vi step-by-stop
+writing...
+git add stop-by-step
+git commit
+
+git co master
+git push github master
+
+建立新的分支track uboot远程master分支，当发现有更新是，对master分支做rebase
+dongyl@dongyl-desktop:u-boot$ git checkout -b uboot-master origin/master
+Branch uboot-master set up to track remote branch master from origin.
+Switched to a new branch 'uboot-master'
+
+dongyl@dongyl-desktop:u-boot$ git br
+develop      7bd2392 How to push the file to github repository
+master       adaf1b8 First Initialize step-by-step how to creat a repository from github by a existing repository
+* uboot-master fca94c3 integrator: remove fragile delay loop from PCI code
+
+. build/envsetup.sh
+./mkconfig tq2440 arm arm920t samsung s3c24x0
+make
