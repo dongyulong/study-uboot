@@ -1,0 +1,43 @@
+1.远程分支就是本地分支push到服务器上的时候产生的。比如master就是一个最典型的远程分支（默认）。
+1
+$: git push origin master
+除了master之外，我们还可以随便创建分支，然后push到服务器上去。例如：
+view sourceprint?
+1
+$: git push origin develop
+2
+Counting objects: 27, done.
+3
+Delta compression using up to 2 threads.
+4
+Compressing objects: 100% (15/15), done.
+5
+Writing objects: 100% (15/15), 7.30 KiB, done.
+6
+Total 15 (delta 10), reused 0 (delta 0)
+7
+To git@search.ued.taobao.net:projects/search.git
+8
+   1b95a57..779dbe1  develop -> develop
+2.远程分支和本地分支需要区分，所以，在从服务器上拉取特定分支的时候，需要指定本地分支名字。
+1
+$: git checkout --track origin/develop
+注意该命令由于带有--track参数，所以要求git1.6.4以上！
+这样git会自动切换到develop分支。
+
+3.同步本地远程分支：
+1
+$: git fetch origin
+4.提交分支数据到远程服务器：
+1
+$: git push origin <local_branch_name>:<remote_branch_name>
+例如：
+1
+$: git push origin develop:develop
+当然如果当前在develop分支下，也可以直接
+1
+$: git push
+5.删除远程分支develop:
+1
+$: git push origin :develop
+
