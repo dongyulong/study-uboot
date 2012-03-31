@@ -30,3 +30,23 @@ master       adaf1b8 First Initialize step-by-step how to creat a repository fro
 . build/envsetup.sh
 ./mkconfig tq2440 arm arm920t samsung s3c24x0
 make
+
+Global setup:
+Set up git
+git config --global user.name "Your Name"
+git config --global user.email dongyl0501@gmail.com
+
+Next steps:
+mkdir longdroid
+cd longdroid
+git init
+touch README
+git add README
+git commit -m 'first commit'
+git remote add origin git@github.com:dongyulong/longdroid.git
+git push -u origin master
+
+Existing Git Repo?
+cd existing_git_repo
+git remote add origin git@github.com:dongyulong/longdroid.git
+git push -u origin master
