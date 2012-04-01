@@ -285,7 +285,7 @@ void env_relocate_spec (void)
 #if !defined(ENV_IS_EMBEDDED)
 static void use_default()
 {
-	puts ("*** Warning - bad CRC or NAND, using default environment\n\n");
+//	puts ("*** Warning - bad CRC or NAND, using default environment\n\n");
 
 	if (default_environment_size > CFG_ENV_SIZE){
 		puts ("*** Error - default environment is too large\n\n");

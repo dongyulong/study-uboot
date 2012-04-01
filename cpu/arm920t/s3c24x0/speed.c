@@ -38,8 +38,24 @@
 #include <s3c2410.h>
 #endif
 
+DECLARE_GLOBAL_DATA_PTR;
 #define MPLL 0
 #define UPLL 1
+
+/* for s3c2440 */
+#define S3C2440_CLKDIVN_PDIVN (1<<0)
+#define S3C2440_CLKDIVN_HDIVN_MASK (3<<1)
+#define S3C2440_CLKDIVN_HDIVN_1 (0<<1)
+#define S3C2440_CLKDIVN_HDIVN_2 (1<<1)
+#define S3C2440_CLKDIVN_HDIVN_4_8 (2<<1)
+#define S3C2440_CLKDIVN_HDIVN_3_6 (3<<1)
+#define S3C2440_CLKDIVN_UCLK (1<<3)
+
+#define S3C2440_CAMDIVN_CAMCLK_MASK (0xf<<0)
+#define S3C2440_CAMDIVN_CAMCLK_SEL (1<<4)
+#define S3C2440_CAMDIVN_HCLK3_HALF (1<<8)
+#define S3C2440_CAMDIVN_HCLK4_HALF (1<<9)
+#define S3C2440_CAMDIVN_DVSEN (1<<12)
 
 /* ------------------------------------------------------------------------- */
 /* NOTE: This describes the proper use of this file.
@@ -67,6 +83,12 @@ static ulong get_PLLCLK(int pllreg)
     p = ((r & 0x003F0) >> 4) + 2;
     s = r & 0x3;
 
+	/* support both of S3C2410 and S3C2440 */
+	if (gd->bd->bi_arch_number == MACH_TYPE_SMDK2410)
+		return((CONFIG_SYS_CLK_FREQ*m)/(p << s));
+	else
+		return((CONFIG_SYS_CLK_FREQ*m*2)/(p << s)); /* S3C2440 */
+
     return((CONFIG_SYS_CLK_FREQ * m) / (p << s));
 }
 
@@ -79,17 +101,83 @@ ulong get_FCLK(void)
 /* return HCLK frequency */
 ulong get_HCLK(void)
 {
-    S3C24X0_CLOCK_POWER * const clk_power = S3C24X0_GetBase_CLOCK_POWER();
+    //S3C24X0_CLOCK_POWER * const clk_power = S3C24X0_GetBase_CLOCK_POWER();
 
-    return((clk_power->CLKDIVN & 0x2) ? get_FCLK()/2 : get_FCLK());
+    //return((clk_power->CLKDIVN & 0x2) ? get_FCLK()/2 : get_FCLK());
+	S3C24X0_CLOCK_POWER *const clk_power = S3C24X0_GetBase_CLOCK_POWER();
+	unsigned long clkdiv;
+	unsigned long camdiv;
+	int hdiv = 1;
+
+	/* support both of S3C2410 and S3C2440 */
+	if(gd->bd->bi_arch_number == MACH_TYPE_SMDK2410)
+		return((clk_power->CLKDIVN & 0x2)?get_FCLK()/2:get_FCLK());
+	else
+	{
+		clkdiv = clk_power->CLKDIVN;
+		camdiv = clk_power->CAMDIVN;
+
+		/* work out clock scalings */
+		switch (clkdiv & S3C2440_CLKDIVN_HDIVN_MASK) {
+			case S3C2440_CLKDIVN_HDIVN_1:
+				hdiv = 1;
+				break;
+
+			case S3C2440_CLKDIVN_HDIVN_2:
+				hdiv = 2;
+				break;
+
+			case S3C2440_CLKDIVN_HDIVN_4_8:
+				hdiv = (camdiv & S3C2440_CAMDIVN_HCLK4_HALF)?8:4;
+				break;
+
+			case S3C2440_CLKDIVN_HDIVN_3_6:
+				hdiv = (camdiv & S3C2440_CAMDIVN_HCLK3_HALF)?6:3;
+				break;
+		}
+
+		return get_FCLK()/hdiv;
+	}
 }
 
 /* return PCLK frequency */
 ulong get_PCLK(void)
 {
     S3C24X0_CLOCK_POWER * const clk_power = S3C24X0_GetBase_CLOCK_POWER();
+	unsigned long clkdiv;
+	unsigned long camdiv;
+	int hdiv = 1;
+	
+	/* support both of S3C2410 and S3C2440 */
+	if(gd->bd->bi_arch_number == MACH_TYPE_SMDK2410)
+		return ((clk_power->CLKDIVN & 0X1)?get_HCLK()/2:get_HCLK());
+	else
+	{
+		clkdiv = clk_power->CLKDIVN;
+		camdiv = clk_power->CAMDIVN;
 
-    return((clk_power->CLKDIVN & 0x1) ? get_HCLK()/2 : get_HCLK());
+		/* work out clock scalings */
+
+		switch (clkdiv & S3C2440_CLKDIVN_HDIVN_MASK) {
+			case S3C2440_CLKDIVN_HDIVN_1:
+				hdiv = 1;
+				break;
+
+			case S3C2440_CLKDIVN_HDIVN_2:
+				hdiv = 2;
+				break;
+
+			case S3C2440_CLKDIVN_HDIVN_4_8:
+				hdiv = (camdiv & S3C2440_CAMDIVN_HCLK4_HALF)?8:4;
+				break;
+
+			case S3C2440_CLKDIVN_HDIVN_3_6:
+				hdiv = (camdiv & S3C2440_CAMDIVN_HCLK3_HALF)?6:3;
+				break;
+		}
+		return get_FCLK()/hdiv/((clkdiv & S3C2440_CLKDIVN_PDIVN)?2:1);
+	}
+    //return((clk_power->CLKDIVN & 0x1) ? get_HCLK()/2 : get_HCLK());
 }
 
 /* return UCLK frequency */

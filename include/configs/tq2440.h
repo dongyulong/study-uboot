@@ -29,6 +29,14 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define CONFIG_DRIVER_DM9000 1
+#define CONFIG_DM9000_BASE 0x20000300
+#define DM9000_IO CONFIG_DM9000_BASE
+#define DM9000_DATA (CONFIG_DM9000_BASE + 4)
+#define CONFIG_DM9000_USE_16BIT
+#define CONFIG_SETUP_MEMORY_TAGS 1
+#define CONFIG_CMDLINE_TAG 1
+
 /*
  * High Level Configuration Options
  * (easy to change)
@@ -78,6 +86,9 @@
 #define CONFIG_COMMANDS \
 			(CONFIG_CMD_DFL	 | \
 			CFG_CMD_CACHE	 | \
+			CFG_CMD_PING	 | \
+			CFG_CMD_JFFS2	 | \
+			CFG_CMD_NAND	 | \
 			/*CFG_CMD_NAND	 |*/ \
 			/*CFG_CMD_EEPROM |*/ \
 			/*CFG_CMD_I2C	 |*/ \
@@ -89,12 +100,12 @@
 /* this must be included AFTER the definition of CONFIG_COMMANDS (if any) */
 #include <cmd_confdefs.h>
 
-#define CONFIG_BOOTDELAY	3
-/*#define CONFIG_BOOTARGS    	"root=ramfs devfs=mount console=ttySA0,9600" */
-/*#define CONFIG_ETHADDR	08:00:3e:26:0a:5b */
+#define CONFIG_BOOTDELAY	1
+#define CONFIG_BOOTARGS    	"noinitrd root=/dev/mtdblock2 init=/linuxrc console=ttySACO"
+#define CONFIG_ETHADDR	0a:1b:2c:3d:4e:5f
 #define CONFIG_NETMASK          255.255.255.0
-#define CONFIG_IPADDR		10.0.0.110
-#define CONFIG_SERVERIP		10.0.0.1
+#define CONFIG_IPADDR		192.168.1.6
+#define CONFIG_SERVERIP		192.168.1.8
 /*#define CONFIG_BOOTFILE	"elinos-lart" */
 /*#define CONFIG_BOOTCOMMAND	"tftp; bootm" */
 
@@ -154,10 +165,10 @@
  * FLASH and environment organization
  */
 
-#define CONFIG_AMD_LV400	1	/* uncomment this if you have a LV400 flash */
 #if 0
-#define CONFIG_AMD_LV800	1	/* uncomment this if you have a LV800 flash */
+#define CONFIG_AMD_LV400	1	/* uncomment this if you have a LV400 flash */
 #endif
+#define CONFIG_AMD_LV800	1	/* uncomment this if you have a LV800 flash */
 
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks */
 #ifdef CONFIG_AMD_LV800
@@ -177,5 +188,9 @@
 
 #define	CFG_ENV_IS_IN_FLASH	1
 #define CFG_ENV_SIZE		0x10000	/* Total Size of Environment Sector */
+
+#define CFG_NAND_BASE 0
+#define CFG_MAX_NAND_DEVICE 1
+#define NAND_MAX_CHIPS 1
 
 #endif	/* __CONFIG_H */

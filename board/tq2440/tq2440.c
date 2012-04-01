@@ -54,6 +54,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define U_M_SDIV	0x2
 #endif
 
+#define S3C2440_CLKDIV 0x05 /* FCLK:HCLK:PCLK = 1:4:8 */
+
 static inline void delay (unsigned long loops)
 {
 	__asm__ volatile ("1:\n"
@@ -70,17 +72,29 @@ int board_init (void)
 	S3C24X0_CLOCK_POWER * const clk_power = S3C24X0_GetBase_CLOCK_POWER();
 	S3C24X0_GPIO * const gpio = S3C24X0_GetBase_GPIO();
 
+	/* FCLK:HCLK:PCLK = 1:4:8 */
+	clk_power->CLKDIVN = S3C2440_CLKDIV;
+
+	/* change to asynchronous bus mod */
+	__asm__(
+			"mrc p15,0,r1,c1,c0,0\n" /* read ctrl register */
+			"orr r1,r1,#0xc0000000\n"  /* Asynchronous */
+			"mcr p15,0,r1,c1,c0,0\n"   /* write ctrl register */
+			);
+
 	/* to reduce PLL lock time, adjust the LOCKTIME register */
 	clk_power->LOCKTIME = 0xFFFFFF;
 
 	/* configure MPLL */
-	clk_power->MPLLCON = ((M_MDIV << 12) + (M_PDIV << 4) + M_SDIV);
+	//clk_power->MPLLCON = ((M_MDIV << 12) + (M_PDIV << 4) + M_SDIV);
+	clk_power->MPLLCON = ((0x7f << 12) | (0x02 << 4) | (0x01));
 
 	/* some delay between MPLL and UPLL */
 	delay (4000);
 
 	/* configure UPLL */
-	clk_power->UPLLCON = ((U_M_MDIV << 12) + (U_M_PDIV << 4) + U_M_SDIV);
+	//clk_power->UPLLCON = ((U_M_MDIV << 12) + (U_M_PDIV << 4) + U_M_SDIV);
+	clk_power->UPLLCON = ((0x38 << 12) | (0x02 << 4) | (0x02));
 
 	/* some delay between MPLL and UPLL */
 	delay (8000);

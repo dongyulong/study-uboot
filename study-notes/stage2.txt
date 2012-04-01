@@ -1,0 +1,30 @@
+lib_arm/board.c
+void start_armboot (void)
+
+	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
+		if ((*init_fnc_ptr)() != 0) {
+			hang ();
+		}
+	}
+
+vi ./cpu/arm920t/cpu.c +92
+
+init_fnc_t *init_sequence[] = {
+	cpu_init,		/* basic cpu dependent setup */
+	board_init,		/* basic board dependent setup */
+	interrupt_init,		/* set up exceptions */
+	env_init,		/* initialize environment */
+	init_baudrate,		/* initialze baudrate settings */
+	serial_init,		/* serial communications setup */
+	console_init_f,		/* stage 1 init of console */
+	display_banner,		/* say that we are here */
+#if defined(CONFIG_DISPLAY_CPUINFO)
+	print_cpuinfo,		/* display cpu info (and speed) */
+#endif
+#if defined(CONFIG_DISPLAY_BOARDINFO)
+	checkboard,		/* display board info */
+#endif
+	dram_init,		/* configure available RAM banks */
+	display_dram_config,
+	NULL,
+};

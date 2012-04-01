@@ -2631,7 +2631,8 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 	mtd->owner = THIS_MODULE;
 #endif
 	/* Build bad block table */
-	return this->scan_bbt (mtd);
+//	return this->scan_bbt (mtd);
+	return 0;
 }
 
 /**

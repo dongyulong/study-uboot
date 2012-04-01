@@ -141,6 +141,10 @@ static inline S3C2410_SDI * const S3C2410_GetBase_SDI(void)
 {
 	return (S3C2410_SDI * const)S3C2410_SDI_BASE;
 }
+static inline S3C2440_NAND *const S3C2440_GetBase_NAND(void)
+{
+	return (S3C2440_NAND * const)S3C2410_NAND_BASE;
+}
 
 
 /* ISR */

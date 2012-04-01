@@ -78,6 +78,7 @@ struct nand_write_options {
 	int pad;		/* pad to page size */
 	int blockalign;		/* 1|2|4 set multiple of eraseblocks
 				 * to align to */
+	int skipfirstblk; /*if ture,skip the first good block*/
 };
 
 typedef struct nand_write_options nand_write_options_t;

@@ -51,11 +51,11 @@
 #define WAIT		 	(0x1<<2)
 #define UBLB		 	(0x1<<3)
 
-#define B1_BWSCON	  	(DW32)
+#define B1_BWSCON	  	(DW16)
 #define B2_BWSCON	  	(DW16)
 #define B3_BWSCON	  	(DW16 + WAIT + UBLB)
 #define B4_BWSCON	  	(DW16)
-#define B5_BWSCON	  	(DW16)
+#define B5_BWSCON	  	(DW8)
 #define B6_BWSCON	  	(DW32)
 #define B7_BWSCON	  	(DW32)
 
@@ -123,7 +123,7 @@
 #define Trp		 	0x0	/* 2clk */
 #define Trc		 	0x3	/* 7clk */
 #define Tchr		 	0x2	/* 3clk */
-#define REFCNT		 	1113	/* period=15.6us, HCLK=60Mhz, (2048+1-15.6*60) */
+#define REFCNT		 	0x4f4	/* period=7.8125us, HCLK=100Mhz, (2048+1-7.8125*100) */
 /**************************************/
 
 _TEXT_BASE:

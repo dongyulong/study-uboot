@@ -298,6 +298,7 @@ int nand_write_opts(nand_info_t *meminfo, const nand_write_options_t *opts)
 	u_char *buffer = opts->buffer;
 	size_t written;
 	int result;
+	int skipfirstblk = opts->skipfirstblk;
 
 	if (opts->pad && opts->writeoob) {
 		printf("Can't pad when oob data is present.\n");
@@ -424,6 +425,13 @@ int nand_write_opts(nand_info_t *meminfo, const nand_write_options_t *opts)
 				offs +=	 erasesize_blockalign
 					/ opts->blockalign;
 			} while (offs < blockstart + erasesize_blockalign);
+		}
+
+		/* skip the first good block when write yaffs image */
+		if (skipfirstblk) {
+			mtdoffset += erasesize_blockalign;
+			skipfirstblk = 0;
+			continue;
 		}
 
 		readlen = meminfo->oobblock;

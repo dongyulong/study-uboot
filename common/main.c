@@ -44,6 +44,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 #endif
 
+
 #if defined(CONFIG_BOOT_RETRY_TIME) && defined(CONFIG_RESET_TO_RETRY)
 extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);		/* for do_reset() prototype */
 #endif
@@ -410,7 +411,8 @@ void main_loop (void)
 # endif
 
 # ifndef CFG_HUSH_PARSER
-		run_command (s, 0);
+//		run_command (s, 0);
+		boot_zImage(0x4c000,0x200000);
 # else
 		parse_string_outer(s, FLAG_PARSE_SEMICOLON |
 				    FLAG_EXIT_FROM_LOOP);
@@ -426,7 +428,8 @@ void main_loop (void)
 	    s = getenv("menucmd");
 	    if (s) {
 # ifndef CFG_HUSH_PARSER
-		run_command (s, 0);
+//		run_command (s, 0);
+		boot_zImage(0x4c000,0x200000);
 # else
 		parse_string_outer(s, FLAG_PARSE_SEMICOLON |
 				    FLAG_EXIT_FROM_LOOP);

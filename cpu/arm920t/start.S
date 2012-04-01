@@ -109,6 +109,7 @@ reset:
 # define INTMSK		0x14400008	/* Interupt-Controller base addresses */
 # define CLKDIVN	0x14800014	/* clock divisor register */
 #elif defined(CONFIG_S3C2410)
+# define INTMOD		0x4A000004
 # define pWTCON		0x53000000
 # define INTMSK		0x4A000008	/* Interupt-Controller base addresses */
 # define INTSUBMSK	0x4A00001C
@@ -132,11 +133,6 @@ reset:
 	str	r1, [r0]
 # endif
 
-	/* FCLK:HCLK:PCLK = 1:2:4 */
-	/* default FCLK is 120 MHz ! */
-	ldr	r0, =CLKDIVN
-	mov	r1, #3
-	str	r1, [r0]
 #endif	/* CONFIG_S3C2400 || CONFIG_S3C2410 */
 
 	/*
@@ -146,6 +142,14 @@ reset:
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
 	bl	cpu_init_crit
 #endif
+
+	/* Set up the stack						    */
+stack_setup:
+	ldr	r0, _TEXT_BASE		/* upper 128 KiB: relocated uboot   */
+	sub	r0, r0, #CFG_MALLOC_LEN	/* malloc area                      */
+	sub	r0, r0, #CFG_GBL_DATA_SIZE /* bdinfo                        */
+	sub	sp, r0, #12		/* leave 3 words for abort-stack    */
+	bl clock_init
 
 #ifndef CONFIG_SKIP_RELOCATE_UBOOT
 relocate:				/* relocate U-Boot to RAM	    */
@@ -157,6 +161,9 @@ relocate:				/* relocate U-Boot to RAM	    */
 	ldr	r2, _armboot_start
 	ldr	r3, _bss_start
 	sub	r2, r3, r2		/* r2 <- size of armboot            */
+#if 1
+	bl CopyCode2Ram		/* r0: source,r1:dest.r2:size */
+#else
 	add	r2, r0, r2		/* r2 <- source end address         */
 
 copy_loop:
@@ -164,14 +171,9 @@ copy_loop:
 	stmia	r1!, {r3-r10}		/* copy to   target address [r1]    */
 	cmp	r0, r2			/* until source end addreee [r2]    */
 	ble	copy_loop
+#endif
 #endif	/* CONFIG_SKIP_RELOCATE_UBOOT */
 
-	/* Set up the stack						    */
-stack_setup:
-	ldr	r0, _TEXT_BASE		/* upper 128 KiB: relocated uboot   */
-	sub	r0, r0, #CFG_MALLOC_LEN	/* malloc area                      */
-	sub	r0, r0, #CFG_GBL_DATA_SIZE /* bdinfo                        */
-	sub	sp, r0, #12		/* leave 3 words for abort-stack    */
 
 clear_bss:
 	ldr	r0, _bss_start		/* find start of bss segment        */

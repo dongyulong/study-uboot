@@ -274,6 +274,8 @@ int
 eth_init(bd_t * bd)
 {
 	int i, oft, lnk;
+	char *tmp = getenv("ethaddr");
+	char *end;
 	DM9000_DBG("eth_init()\n");
 
 	/* RESET device */
@@ -300,8 +302,12 @@ eth_init(bd_t * bd)
 	DM9000_iow(DM9000_ISR, 0x0f);	/* Clear interrupt status */
 
 	/* Set Node address */
-	for (i = 0; i < 6; i++)
-		((u16 *) bd->bi_enetaddr)[i] = read_srom_word(i);
+	for (i = 0; i < 6; i++) {
+		bd->bi_enetaddr[i] = tmp?simple_strtoul(tmp,&end,16):0;
+		if(tmp)
+			tmp = (*end)?end+1:end;
+	//	((u16 *) bd->bi_enetaddr)[i] = read_srom_word(i);
+	}
 	printf("MAC: %02x:%02x:%02x:%02x:%02x:%02x\n", bd->bi_enetaddr[0],
 	       bd->bi_enetaddr[1], bd->bi_enetaddr[2], bd->bi_enetaddr[3],
 	       bd->bi_enetaddr[4], bd->bi_enetaddr[5]);
@@ -316,6 +322,7 @@ eth_init(bd_t * bd)
 	DM9000_DBG("\n");
 
 	/* Activate DM9000 */
+#if 0
 	DM9000_iow(DM9000_RCR, RCR_DIS_LONG | RCR_DIS_CRC | RCR_RXEN);	/* RX enable */
 	DM9000_iow(DM9000_IMR, IMR_PAR);	/* Enable TX/RX interrupt mask */
 	i = 0;
@@ -349,6 +356,7 @@ eth_init(bd_t * bd)
 		break;
 	}
 	printf("mode\n");
+#endif
 	return 0;
 }
 
