@@ -33,7 +33,6 @@ SECTIONS
 	.text      :
 	{
 	  cpu/arm920t/start.o	(.text)
-	  board/tq2440/boot_init.o (.text)
 	  *(.text)
 	}
 

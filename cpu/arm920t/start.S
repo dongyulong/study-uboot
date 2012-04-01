@@ -400,25 +400,6 @@ not_used:
 	bad_save_user_regs
 	bl 	do_not_used
 
-#ifdef CONFIG_USE_IRQ
-
-	.align	5
-irq:
-	get_irq_stack
-	irq_save_user_regs
-	bl 	do_irq
-	irq_restore_user_regs
-
-	.align	5
-fiq:
-	get_fiq_stack
-	/* someone ought to write a more effiction fiq_save_user_regs */
-	irq_save_user_regs
-	bl 	do_fiq
-	irq_restore_user_regs
-
-#else
-
 	.align	5
 irq:
 	get_bad_stack
@@ -430,5 +411,3 @@ fiq:
 	get_bad_stack
 	bad_save_user_regs
 	bl 	do_fiq
-
-#endif
