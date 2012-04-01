@@ -10,59 +10,6 @@
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
 应该是没有使用irq，相关代码应该可以删减
 
-/*
-
-*  armboot - Startup Code for ARM920 CPU-core
-
-*
-
-*  Copyright (c) 2001 Marius Gr鰃er <mag@sysgo.de>
-
-*  Copyright (c) 2002 Alex Z黳ke <azu@sysgo.de>
-
-*  Copyright (c) 2002 Gary Jennejohn <gj@denx.de>
-
-*
-
-* See file CREDITS for list of people who contributed to this
-
-* project.
-
-*
-
-* This program is free software; you can redistribute it and/or
-
-* modify it under the terms of the GNU General Public License as
-
-* published by the Free Software Foundation; either version 2 of
-
-* the License, or (at your option) any later version.
-
-*
-
-* This program is distributed in the hope that it will be useful,
-
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-
-* GNU General Public License for more details.
-
-*
-
-* You should have received a copy of the GNU General Public License
-
-* along with this program; if not, write to the Free Software
-
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-
-* MA 02111-1307 USA
-
-*/
-
- 
-
- 
 
 @文件包含处理
 
@@ -74,9 +21,6 @@
 
 #include <version.h>  
 
-#include <status_led.h>
-
- 
 
 /*
 
@@ -144,13 +88,7 @@ _fiq:   .word fiq
 
  .balignl 16,0xdeadbeef
 
-@.balignl是.balign的变体，为伪操作符，控制对齐方式。它的意思是以当前地址开始，地址计数器必须是以第一个参数为整数倍的地址为尾，在 前面记录一个长字长度的信息，信息为第二个参数。【参考好野人的窝，于关u-boot中的.balignl 16,0xdeadbeef的理解http://haoyeren.blog.sohu.com/84511571.html】
-
- 
-
- 
-
- 
+@.balignl是.balign的变体，为伪操作符，控制对齐方式。它的意思是以当前地址开始，地址计数器必须是以第一个参数为整数倍的地址为尾，在 前面记录一个长字长度的信息，信息为第二个参数.
 
 /*
 
@@ -194,7 +132,7 @@ _armboot_start:
 
 .word _start
 
-@用_start来初始化_armboot_start。（为什么要这么定义一下还不明白）
+@用_start来初始化_armboot_start。
 
  
 
@@ -226,37 +164,6 @@ _bss_end:
 
 @同上，这样赋值是因为代码所在地址非编译时的地址，直接取得该标号对应地址。
 
- 
-
-@中断的堆栈设置
-
- 
-
-#ifdef CONFIG_USE_IRQ
-
-/* IRQ stack memory (calculated at run-time) */
-
-.globl IRQ_STACK_START
-
-IRQ_STACK_START:
-
-.word 0x0badc0de
-
- 
-
-/* IRQ stack memory (calculated at run-time) */
-
-.globl FIQ_STACK_START
-
-FIQ_STACK_START:
-
-.word 0x0badc0de
-
-#endif
-
- 
-
- 
 
 /*
 
@@ -324,47 +231,6 @@ bic r0,r0,#0x1f
 
 msr cpsr,r0
 
- 
-
-@以下是点灯了，这里应该会牵涉到硬件设置，移植的时候应该可以不要
-
-bl coloured_LED_init
-
-bl red_LED_on
-
- 
-
-@针对AT91RM9200进行特殊处理
-
-#if defined(CONFIG_AT91RM9200DK) || defined(CONFIG_AT91RM9200EK)
-
-/*
-
-* relocate exception table
-
-*/
-
-ldr r0, =_start
-
-ldr r1, =0x0
-
-mov r2, #16
-
-copyex:
-
-subs r2, r2, #1
-
-@sub带上了s用来更改进位标志，对于sub来说，若发生借位则C标志置0，没有则为1，这跟adds指令相反！要注意。
-
-ldr r3, [r0], #4
-
-str r3, [r1], #4
-
-bne copyex
-
-#endif
-
- 
 
 @针对S3C2400和S3C2410进行特殊处理
 
@@ -579,17 +445,11 @@ ble copy_loop
 stack_setup:
 
 ldr r0, _TEXT_BASE  /* upper 128 KiB: relocated uboot   */
-
 sub r0, r0, #CONFIG_SYS_MALLOC_LEN /* malloc area                      */
-
 sub r0, r0, #CONFIG_SYS_GBL_DATA_SIZE /* bdinfo                        */
-
 #ifdef CONFIG_USE_IRQ
-
 sub r0, r0, #(CONFIG_STACKSIZE_IRQ+CONFIG_STACKSIZE_FIQ)
-
 #endif
-
 sub sp, r0, #12  /* leave 3 words for abort-stack    */
 
  
@@ -597,21 +457,15 @@ sub sp, r0, #12  /* leave 3 words for abort-stack    */
 @初始化数据段
 
 clear_bss:
-
 ldr r0, _bss_start  /* find start of bss segment        */
-
 ldr r1, _bss_end  /* stop here                        */
-
 mov r2, #0x00000000  /* clear                            */
 
  
 
 clbss_l:str r2, [r0]  /* clear loop...                    */
-
 add r0, r0, #4
-
 cmp r0, r1
-
 ble clbss_l
 
  

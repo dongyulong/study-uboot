@@ -90,19 +90,6 @@ _bss_start:
 _bss_end:
 	.word _end
 
-#ifdef CONFIG_USE_IRQ
-/* IRQ stack memory (calculated at run-time) */
-.globl IRQ_STACK_START
-IRQ_STACK_START:
-	.word	0x0badc0de
-
-/* IRQ stack memory (calculated at run-time) */
-.globl FIQ_STACK_START
-FIQ_STACK_START:
-	.word 0x0badc0de
-#endif
-
-
 /*
  * the actual reset code
  */
@@ -184,9 +171,6 @@ stack_setup:
 	ldr	r0, _TEXT_BASE		/* upper 128 KiB: relocated uboot   */
 	sub	r0, r0, #CFG_MALLOC_LEN	/* malloc area                      */
 	sub	r0, r0, #CFG_GBL_DATA_SIZE /* bdinfo                        */
-#ifdef CONFIG_USE_IRQ
-	sub	r0, r0, #(CONFIG_STACKSIZE_IRQ+CONFIG_STACKSIZE_FIQ)
-#endif
 	sub	sp, r0, #12		/* leave 3 words for abort-stack    */
 
 clear_bss:
@@ -198,27 +182,6 @@ clbss_l:str	r2, [r0]		/* clear loop...                    */
 	add	r0, r0, #4
 	cmp	r0, r1
 	ble	clbss_l
-
-#if 0
-	/* try doing this stuff after the relocation */
-	ldr     r0, =pWTCON
-	mov     r1, #0x0
-	str     r1, [r0]
-
-	/*
-	 * mask all IRQs by setting all bits in the INTMR - default
-	 */
-	mov	r1, #0xffffffff
-	ldr	r0, =INTMR
-	str	r1, [r0]
-
-	/* FCLK:HCLK:PCLK = 1:2:4 */
-	/* default FCLK is 120 MHz ! */
-	ldr	r0, =CLKDIVN
-	mov	r1, #3
-	str	r1, [r0]
-	/* END stuff after relocation */
-#endif
 
 	ldr	pc, _start_armboot
 
