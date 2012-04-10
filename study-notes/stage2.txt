@@ -28,3 +28,18 @@ init_fnc_t *init_sequence[] = {
 	display_dram_config,
 	NULL,
 };
+
+1.cpu_init貌似是计算使用中断时，栈的大小,这里不使用中断，所以
+相当于空函数。
+
+int cpu_init (void)
+{
+	/*
+	 * setup up stacks if necessary
+	 */
+#ifdef CONFIG_USE_IRQ
+	IRQ_STACK_START = _armboot_start - CFG_MALLOC_LEN - CFG_GBL_DATA_SIZE - 4;
+	FIQ_STACK_START = IRQ_STACK_START - CONFIG_STACKSIZE_IRQ;
+#endif
+	return 0;
+}
