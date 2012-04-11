@@ -61,7 +61,7 @@ int cpu_init (void)
 	/* configure UPLL */
 	clk_power->UPLLCON = ((0x38 << 12) | (0x02 << 4) | (0x02));
 
-	2.
+	2.GPIO的配置
 	/* set up the I/O ports */
 	gpio->GPACON = 0x007FFFFF;
 	gpio->GPBCON = 0x00044555;
@@ -78,5 +78,14 @@ int cpu_init (void)
 	gpio->GPGUP = 0x0000FFFF;
 	gpio->GPHCON = 0x002AFAAA;
 	gpio->GPHUP = 0x000007FF;
+
+	3.声明全局数据指针，gd->bd中存放板级参数,关于gd，bd
+		参考《关于gd和dt两个结构体》以及《u-boot存储器映射.jpg》
+DECLARE_GLOBAL_DATA_PTR;
+	/* arch number of SMDK2410-Board */
+	gd->bd->bi_arch_number = MACH_TYPE_SMDK2410;
+
+	/* adress of boot parameters */
+	gd->bd->bi_boot_params = 0x30000100;
 
 }

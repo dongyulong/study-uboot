@@ -1,0 +1,77 @@
+gd_t和bd_t是uboot中两个重要的数据结构，在初始化操作很多都要靠这两个数据结构来保存或传递
+
+如下的两个结构，我们主要的是关心下面一行声明：
+#define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r8")
+
+这个声明告诉编译器使用寄存器r8来存储gd_t类型的指针gd，即这个定义声明了一个指针，并且指明了它的存储位置。
+register表示变量放在机器的寄存器
+volatile用于指定变量的值可以由外部过程异步修改
+
+并且这个指针在start_armboot()（board.c)中被初始化：
+    /* Pointer is writable since we allocated a register for it */
+    gd = (gd_t*)(_armboot_start - CFG_MALLOC_LEN - sizeof(gd_t));
+
+这样，gd就指向的一个可用的内存地址了。
+
+==============================================================
+typedef struct bd_info {
+    unsigned long        bi_baudrate;
+    unsigned long        bi_ip_addr;
+    unsigned char        bi_enetaddr[6];
+    unsigned char        bi_phy_id[4];
+    struct environment_s    *bi_env;
+    unsigned long        bi_board_number;
+    void            *bi_boot_params;
+    struct {
+        unsigned long    start;
+        unsigned long    size;
+    }            bi_dram[CONFIG_NR_DRAM_BANKS];
+    unsigned long        bi_flashstart;
+    unsigned long        bi_flashsize;
+    unsigned long        bi_flashoffset;
+} bd_t;
+
+
+#ifndef    __ASM_GBL_DATA_H
+#define __ASM_GBL_DATA_H
+/*
+* The following data structure is placed in some memory wich is
+* available very early after boot (like DPRAM on MPC8xx/MPC82xx, or
+* some locked parts of the data cache) to allow for a minimum set of
+* global variables during system initialization (until we have set
+* up the memory controller so that we can use RAM).
+*
+* Keep it *SMALL* and remember to set CFG_GBL_DATA_SIZE > sizeof(gd_t)
+*/
+
+typedef    struct    global_data {
+    bd_t        *bd;
+    unsigned long    flags;
+    unsigned long    baudrate;
+    unsigned long    have_console;    /* serial_init() was called */
+    unsigned long    reloc_off;    /* Relocation Offset */
+    unsigned long    env_addr;    /* Address of Environment struct */
+    unsigned long    env_valid;    /* Checksum of Environment valid? */
+    unsigned long    fb_base;    /* base address of frame buffer */
+#ifdef CONFIG_VFD
+    unsigned char    vfd_type;    /* display type */
+#endif
+#if 0
+    unsigned long    cpu_clk;    /* CPU clock in Hz!        */
+    unsigned long    bus_clk;
+    unsigned long    ram_size;    /* RAM size */
+    unsigned long    reset_status;    /* reset status register at boot */
+#endif
+    void        **jt;        /* jump table */
+} gd_t;
+
+/*
+* Global Data Flags
+*/
+#define    GD_FLG_RELOC    0x00001        /* Code was relocated to RAM        */
+#define    GD_FLG_DEVINIT    0x00002        /* Devices have been initialized    */
+#define    GD_FLG_SILENT    0x00004        /* Silent mode                */
+
+#define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r8")
+
+#endif /* __ASM_GBL_DATA_H */
