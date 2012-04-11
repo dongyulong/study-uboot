@@ -43,3 +43,40 @@ int cpu_init (void)
 #endif
 	return 0;
 }
+
+2.int board_init(void) 
+{
+	1.时钟的配置参见《关于S3C2440时钟设置的理解.doc》
+	S3C24X0_CLOCK_POWER * const clk_power = S3C24X0_GetBase_CLOCK_POWER();
+
+	/* FCLK:HCLK:PCLK = 1:4:8 */
+	clk_power->CLKDIVN = S3C2440_CLKDIV;//0x05
+
+	/* to reduce PLL lock time, adjust the LOCKTIME register */
+	clk_power->LOCKTIME = 0xFFFFFF;
+
+	/* configure MPLL */
+	clk_power->MPLLCON = ((0x7f << 12) | (0x02 << 4) | (0x01));
+
+	/* configure UPLL */
+	clk_power->UPLLCON = ((0x38 << 12) | (0x02 << 4) | (0x02));
+
+	2.
+	/* set up the I/O ports */
+	gpio->GPACON = 0x007FFFFF;
+	gpio->GPBCON = 0x00044555;
+	gpio->GPBUP = 0x000007FF;
+	gpio->GPCCON = 0xAAAAAAAA;
+	gpio->GPCUP = 0x0000FFFF;
+	gpio->GPDCON = 0xAAAAAAAA;
+	gpio->GPDUP = 0x0000FFFF;
+	gpio->GPECON = 0xAAAAAAAA;
+	gpio->GPEUP = 0x0000FFFF;
+	gpio->GPFCON = 0x000055AA;
+	gpio->GPFUP = 0x000000FF;
+	gpio->GPGCON = 0xFF95FFBA;
+	gpio->GPGUP = 0x0000FFFF;
+	gpio->GPHCON = 0x002AFAAA;
+	gpio->GPHUP = 0x000007FF;
+
+}
