@@ -116,7 +116,7 @@ _fiq:   .word fiq
 
 @代码数据地址的初始化（不知道理解的对不对）
 
- 
+
 
 _TEXT_BASE:
 
@@ -124,7 +124,7 @@ _TEXT_BASE:
 
 @TEXT_BASE在开发板相关的目录中的config.mk文档中定义,他定义了代码在运行时所在的地址,那么_TEXT_BASE中保存了这个地址（这个TEXT_BASE怎么来的还不清楚）
 
- 
+
 
 .globl _armboot_start
 
@@ -134,7 +134,7 @@ _armboot_start:
 
 @用_start来初始化_armboot_start。
 
- 
+
 
 /*
 
