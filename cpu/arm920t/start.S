@@ -103,6 +103,16 @@ reset:
 	orr	r0,r0,#0xd3
 	msr	cpsr,r0
 
+#define GPBCON	0x56000010
+	ldr	r0, =GPBCON
+	mov	r1, #0x25400
+	str	r1, [r0]
+
+#define GPBDAT  0x56000014
+	ldr	r0, =GPBDAT
+	mov	r1, #0x0
+	str	r1, [r0]
+
 /* turn off the watchdog */
 #if defined(CONFIG_S3C2400)
 # define pWTCON		0x15300000

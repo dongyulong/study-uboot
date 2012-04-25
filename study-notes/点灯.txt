@@ -1,0 +1,48 @@
+nLED1	GPB5
+nLED2	GPB6
+nLED3	GPB7
+nLED4	GPB8
+
+PORT PULL-UP REGISTER (GPBUP-GPJUP)
+	The port pull-up register controls the pull-up resister enable/disable of each port group. When the corresponding bit is
+	0, the pull-up resister of the pin is enabled. When 1, the pull-up resister is disabled.
+	If the port pull-up register is enabled then the pull-up resisters work without pin’s functional setting(input, output,
+	DATAn, EINTn and etc)
+
+	端口上拉寄存器控制着每个端口的上拉电阻的使能/禁止，当相应的位为0时，对应的上拉电阻被使能，为1时，上拉电阻被禁止。
+	如果上拉寄存器使能了那么上拉电阻开始工作而不需要引脚功能设置(输入，输出，数据，外部中断，等等)。
+
+
+"当上拉寄存器使能后，引脚就不能当功能引脚使用了，只能是输入输出。"
+
+
+Register Address R/W    Description                          Reset Value
+GPBCON 0x56000010 R/W   Configures the pins of port B            0x0
+GPBDAT 0x56000014 R/W   The data register for port B             Undef.
+GPBUP 0x56000018 R/W    Pull-up disable register for port B      0x0
+
+PBCON 	Bit	Description
+GPB8 [17:16] 00 = Input   01 = Output
+            10 = nXDREQ1  11 = Reserved
+
+GPB7 [15:14] 00 = Input   01 = Output
+            10 = nXDACK1  11 = Reserved
+
+
+GPB6 [13:12] 00 = Input   01 = Output
+            10 = nXBREQ   11 = reserved
+
+
+GPB5 [11:10] 00 = Input   01 = Output
+            10 = nXBACK   11 = reserved
+total 22bit
+
+GPBDAT 		Bit 		Description
+GPB[10:0] 	[10:0] 		When the port is configured as input port, the corresponding bit is the pin state. When the port is configured as output 				 port, the pin state is the same as the corresponding bit. When the port is configured as functional pin, the undefined 				  value will be read.
+
+GPBUP 		Bit 		Description
+GPB[10:0] 	[10:0] 		0: The pull up function attached to the corresponding port pin is enabled.
+				1: The pull up function is disabled.
+gpio->GPBCON = 0x00044555;
+	       0000 0000 0000 0100 0100 0101 0101 0101 0101
+	                                       98 7654 3210
