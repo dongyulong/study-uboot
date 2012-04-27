@@ -1,0 +1,276 @@
+
+http://hi.baidu.com/vivo01/blog/item/9e822c005893a508738da574.html
+
+调试了很久终于成功启动了板子，这个程序分两个部分，一个是启动代码boot.s负责初始化硬件并拷贝前4k的程序到内存中执行。另外一个是主程序文件main.c，main设置UART并使用串口循环输出打印一个类似于shell的界面，可以接收命令，但暂时没做命令解释,功能还不全，主要是为了看看能不能实现基本的BOOTLOADER功能
+mian.c
+#define BUF_SIZE 100
+#define GPHCON (*(volatile unsigned long *)0x56000070)
+#define GPHUP (*(volatile unsigned long *)0x56000078)
+
+#define ULCON0 (*(volatile unsigned long *)0x50000000)
+#define UCON0 (*(volatile unsigned long *)0x50000004)
+#define UFCON0 (*(volatile unsigned long *)0x50000008)
+#define UTRSTAT0 (*(volatile unsigned long *)0x50000010)
+#define UTXH0 (*(volatile unsigned long *)0x50000020)
+#define URXH0 (*(volatile unsigned long *)0x50000024)
+#define UBRDIV0 (*(volatile unsigned long *)0x50000028)
+
+void init_uart();
+void newline();
+void bzero(char *buf,int size);
+void do_cmd(char *s);
+void send_char(char ch);
+void send_msg(char *s);
+void get_msg(char *buf,int size);
+void print_shell();
+void delay(int i);
+
+void main(void)
+{
+init_uart();
+
+char msg[BUF_SIZE];
+
+while(1)
+{
+bzero(msg,BUF_SIZE);
+newline();
+print_shell();
+get_msg(msg,BUF_SIZE - 2);
+do_cmd(msg);
+//              delay(4);
+}
+}
+
+
+void init_uart()
+{
+GPHCON &= ~(0xf0);
+GPHCON |= 0xa0;
+GPHUP = 0xc;
+
+ULCON0 = 0x03;
+UCON0 = 0x05;
+UFCON0 = 0;
+UBRDIV0 = 27;
+}
+
+void newline()
+{
+send_char('\r');
+send_char('\n');
+}
+
+void bzero(char *buf,int size)
+{
+int i;
+
+for(i = 0;i < size;i++)
+buf[i] = 0;
+}
+
+void send_char(char ch)
+{
+while(!((UTRSTAT0 >> 1) & 1))
+;
+UTXH0 = ch;
+}
+
+void send_msg(char *s)
+{
+while(*s != '\0')
+{
+while(!((UTRSTAT0 >> 1) & 1))
+;
+UTXH0 = *s;
+s++;
+}
+}
+
+void get_msg(char *buf,int size)
+{
+int i;
+char ch;
+
+for(i = 0;i < size;i++)
+{
+while(!(UTRSTAT0 & 1))
+;
+ch = URXH0;
+if(ch == '\n' || ch == '\0' || ch == ';')
+{
+buf[i] = '\r';
+buf[i] = '\n';
+break;
+}
+buf[i] = ch;
+send_char(ch);
+}
+}
+
+void print_shell()
+{
+send_msg("[sillyboot@leonlew]");
+}
+
+
+void do_cmd(char *s)
+{
+newline();
+send_msg("Unknown command:");
+send_msg(s);
+}
+
+void delay(int i)
+{
+int j;
+
+for(j = 0;j < 0x40000 * i;j++)
+;
+}
+
+
+boot.s
+b RESET
+@b UDF
+@b SWI
+@b PABT
+@b DABT
+@b RESERVE
+@b IRQ
+@b FIQ
+
+RESET:
+@svc模式，IRQ，FIQ关闭
+mrs r0,cpsr
+bic r0,r0,#0x1f
+orr r0,r0,#0xd3
+msr cpsr,r0;
+
+@初始化时钟
+ldr r0,=0x4c000004
+ldr r1,=0x7f021
+str r1,[r0]
+
+ldr r0,=0x4c000014
+mov r1,#5
+str r1,[r0]
+
+@工作在异步模式
+mrc p15,0,r0,c1,c0,0
+orr r0,r0,#0xc0000000
+mcr p15,0,r0,c1,c0,0
+
+@关闭watch dog
+ldr r0,=0x53000000
+mov r1,#0x0
+str r1,[r0]
+
+@初始化SDRAM
+@BWSCON寄存器
+ldr r0,=0x48000000
+ldr r1,=0x02000000
+str r1,[r0]
+@BANKCON6寄存器
+ldr r0,=0x4800001c
+ldr r1,=0x00018005
+str r1,[r0]
+
+@refresh寄存器设置
+ldr r0,=0x48000024
+ldr r1,=0x8c04f5
+str r1,[r0]
+
+@banksize寄存器设置
+ldr r0,=0x48000028
+mov r1,#1
+str r1,[r0]
+
+@MRSRB6寄存器设置
+ldr r0,=0x4800002c
+mov r1,#0x30
+str r1,[r0]
+
+@打开所有LED灯
+ldr r0,=0x56000058
+ldr r1,[r0]
+bic r1,r1,#0xf0
+orr r1,r1,#0xf0
+str r1,[r0]
+
+ldr r0, =0x56000050
+ldr r1, [r0]
+bic r1, r1, #0xff00
+orr r1, r1, #0x5500
+str r1, [r0]
+
+ldr r0, =0x56000054
+ldr r1, [r0]
+and r1,r1,#0x0f
+
+ldr r0, =0x56000050
+ldr r1, [r0]
+bic r1, r1, #0xff00
+orr r1, r1, #0x5500
+str r1, [r0]
+
+@测试SDRAM
+ldr r0,=0x32000000
+ldr r1,=0x22334455
+str r1,[r0]
+
+
+@拷贝程序到0x33000000
+@从地址0开始拷贝4K的内容到0x33000000
+mov r1,#0
+ldr r2,=0x33000000
+mov r3,#0x1000
+
+loop_cp:
+ldr r4,[r1],#4
+str r4,[r2],#4
+cmp r1,r3
+bne loop_cp
+
+@拷贝完成测试，关闭第一和第三个LED
+ldr r2,[r0]
+cmp r2,r1
+bne end
+ldr r0, =0x56000054
+ldr r1, [r0]
+orr r1,r1,#0xa0
+str r1, [r0]
+
+end:
+@设置栈
+ldr sp,=0x33400000
+
+ldr pc,=main
+
+
+链接脚本
+lscript.lds
+SECTIONS
+{
+. = 0x33000000;
+.text :
+{
+*.o(.text);
+} 
+. = ALIGN(4);
+.data :
+{
+*.data(.data);
+}
+}
+Makefile
+boot:
+@arm-linux-gcc -c -o main.o main.c
+@arm-linux-as -o boot.o boot.s
+@arm-linux-ld -T lscript.lds boot.o main.o -o boot
+@arm-linux-objcopy -I elf32-littlearm -O binary boot /myboot.bin
+@arm-linux-nm -s boot main.o > System.map
+main:
+@arm-linux-gcc -c -o main.o main.c
+clean:
+@rm -f boot *.o
